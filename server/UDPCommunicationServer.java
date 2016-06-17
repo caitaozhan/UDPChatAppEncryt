@@ -12,11 +12,12 @@ class CommunicationServer extends JFrame implements Runnable
 {
 	private static final long serialVersionUID = -2346534561072742542L;
 	public JLabel     myLabel;
-	public TextArea   TextArea1;
+	public TextArea   textArea;
 	public JTextField jTextFieldInput;
 	Thread s;
 	private DatagramSocket sendSocket, receiveSocket;
-	private DatagramPacket sendPacket, receivePacket;
+	private DatagramPacket receivePacket;
+	private SocketAddress  sendAddress;
 	private String name;
 
 	public CommunicationServer()
@@ -35,9 +36,13 @@ class CommunicationServer extends JFrame implements Runnable
 	{
 		myLabel = new JLabel("通信记录");
 		jTextFieldInput = new JTextField();
-		TextArea1 = new TextArea();
-		setSize(new Dimension(400, 200));
+		textArea = new TextArea();
+		
+		setSize(400, 200);
 		setTitle("UDPServer");
+		add(myLabel, BorderLayout.NORTH);
+		add(textArea, BorderLayout.CENTER);
+		add(jTextFieldInput, BorderLayout.SOUTH);
 		jTextFieldInput.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -45,12 +50,10 @@ class CommunicationServer extends JFrame implements Runnable
 				jTextFieldInput_actionPerformed(e);
 			}
 		});
-		add(TextArea1, BorderLayout.CENTER);
-		add(jTextFieldInput, BorderLayout.SOUTH);
 		try
 		{
-			sendSocket = new DatagramSocket();   //创建接收用数据报
-			receiveSocket = new DatagramSocket(8002);
+			sendSocket = new DatagramSocket();         // 创建发送方的套接字，IP默认为本地，端口号随机
+			receiveSocket = new DatagramSocket(8002);  // 创建接收方的套接字，IP(chosen by the kernal),端口号8002
 		}
 		catch (SocketException e)
 		{
@@ -63,27 +66,25 @@ class CommunicationServer extends JFrame implements Runnable
 
 	public void run()
 	{
-		System.out.println("1");
 		while (true)
 		{
-			System.out.println("2");
 			try
 			{
-				byte buf[] = new byte[100];
+				byte buf[] = new byte[1024];
 				receivePacket = new DatagramPacket(buf, buf.length);
-				System.out.println("3");
-				receiveSocket.receive(receivePacket);
-				System.out.println("4");
+				
+				receiveSocket.receive(receivePacket);  // 通过套接字，等待接受数据
+				
 				name = receivePacket.getAddress().toString().trim();
-				TextArea1.append("\n来自主机:" + name + "\n端口:" + receivePacket.getPort());
-				TextArea1.append("\n客户端:\t");
+				textArea.append("\n来自主机:" + name + "\n端口:" + receivePacket.getPort());
+				textArea.append("\n客户端: ");
 				byte[] data = receivePacket.getData();
 				String receivedString = new String(data);
-				TextArea1.append(receivedString);
+				textArea.append(receivedString);
 			}
 			catch (IOException e)
 			{
-				TextArea1.append("网络通信出现错误,问题在于" + e.toString());
+				textArea.append("网络通信出现错误,问题在于" + e.toString());
 			}
 		}
 	}
@@ -95,26 +96,21 @@ class CommunicationServer extends JFrame implements Runnable
 			System.exit(0);
 		}
 	}
-	@SuppressWarnings("deprecation")
 	void jTextFieldInput_actionPerformed(ActionEvent e)
 	{
 		try
 		{
-			TextArea1.append("\n服务器:");
+			textArea.append("\n服务器:");
 			String string = jTextFieldInput.getText().trim();
-			TextArea1.append(string);
-			byte[] databyte = new byte[100];
-			System.out.println("caitao-1");
-			string.getBytes(0, string.length(), databyte, 0);
-			DatagramPacket sendPacket = new DatagramPacket(databyte, string.length(),
-					java.net.InetAddress.getByName("192.168.191.2"), 8001);
-			System.out.println("caitao-2");
+			textArea.append(string);
+			byte[] databyte = string.getBytes();
+			sendAddress = receivePacket.getSocketAddress();
+			DatagramPacket sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
 			sendSocket.send(sendPacket);
-			System.out.println("caitao-3");
 		}
 		catch (IOException ioe)
 		{
-			TextArea1.append("网络通信出现错误，问题在于" + e.toString());
+			textArea.append("网络通信出现错误，问题在于" + e.toString());
 		}
 		catch(Exception exception)
 		{
