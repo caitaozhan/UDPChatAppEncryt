@@ -10,14 +10,10 @@ import java.io.*;
 
 class CommunicationServer extends JFrame implements Runnable
 {
-
 	private static final long serialVersionUID = -2346534561072742542L;
-	JPanel contentPane;
-	JLabel jLabel1 = new JLabel();     // 创建图形用户界面
-	JLabel jLabel2 = new JLabel();
-	public JTextField jTextField1 = new JTextField();
-	public TextArea jTextArea1 = new TextArea("", 100, 50);
-	public JScrollPane scrollPane = new JScrollPane();
+	public JLabel     myLabel;
+	public TextArea   TextArea1;
+	public JTextField jTextFieldInput;
 	Thread s;
 	private DatagramSocket sendSocket, receiveSocket;
 	private DatagramPacket sendPacket, receivePacket;
@@ -37,31 +33,20 @@ class CommunicationServer extends JFrame implements Runnable
 	}
 	private void jbInit() throws Exception
 	{
-		jLabel1.setText("通信记录：");
-		jLabel1.setBounds(new Rectangle(4, 4, 67, 29));
-		contentPane = (JPanel) this.getContentPane();
-		contentPane.setLayout(null);
-		this.setSize(new Dimension(400, 200));
-		this.setTitle("UDPServer");
-		jLabel2.setText("输入通信内容:");
-		jLabel2.setBounds(new Rectangle(11, 124, 93, 32));
-		jTextField1.setText("");
-		jTextField1.setBounds(new Rectangle(118, 125, 269, 30));
-		jTextField1.addActionListener(new java.awt.event.ActionListener()
+		myLabel = new JLabel("通信记录");
+		jTextFieldInput = new JTextField();
+		TextArea1 = new TextArea();
+		setSize(new Dimension(400, 200));
+		setTitle("UDPServer");
+		jTextFieldInput.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				jTextField1_actionPerformed(e);
+				jTextFieldInput_actionPerformed(e);
 			}
 		});
-		jTextArea1.setBounds(new Rectangle(97, 29, 280, 90));
-		jTextArea1.setEditable(false);
-		//scrollPane.setViewportView(jTextArea1);
-		jTextField1.setEditable(true);
-		contentPane.add(jLabel1, null);
-		contentPane.add(jTextArea1, null);
-		contentPane.add(jTextField1, null);
-		contentPane.add(jLabel2, null);
+		add(TextArea1, BorderLayout.CENTER);
+		add(jTextFieldInput, BorderLayout.SOUTH);
 		try
 		{
 			sendSocket = new DatagramSocket();   //创建接收用数据报
@@ -90,16 +75,15 @@ class CommunicationServer extends JFrame implements Runnable
 				receiveSocket.receive(receivePacket);
 				System.out.println("4");
 				name = receivePacket.getAddress().toString().trim();
-				jTextArea1.append("\n来自主机:" + name + "\n端口:" + receivePacket.getPort());
-				jTextArea1.append("\n客户端:\t");
+				TextArea1.append("\n来自主机:" + name + "\n端口:" + receivePacket.getPort());
+				TextArea1.append("\n客户端:\t");
 				byte[] data = receivePacket.getData();
-				@SuppressWarnings("deprecation")
-				String receivedString = new String(data, 0);
-				jTextArea1.append(receivedString);
+				String receivedString = new String(data);
+				TextArea1.append(receivedString);
 			}
 			catch (IOException e)
 			{
-				jTextArea1.append("网络通信出现错误,问题在于" + e.toString());
+				TextArea1.append("网络通信出现错误,问题在于" + e.toString());
 			}
 		}
 	}
@@ -112,23 +96,29 @@ class CommunicationServer extends JFrame implements Runnable
 		}
 	}
 	@SuppressWarnings("deprecation")
-	void jTextField1_actionPerformed(ActionEvent e)
+	void jTextFieldInput_actionPerformed(ActionEvent e)
 	{
 		try
 		{
-			jTextArea1.append("\n服务器:");
-			String string = jTextField1.getText().trim();
-			jTextArea1.append(string);
+			TextArea1.append("\n服务器:");
+			String string = jTextFieldInput.getText().trim();
+			TextArea1.append(string);
 			byte[] databyte = new byte[100];
+			System.out.println("caitao-1");
 			string.getBytes(0, string.length(), databyte, 0);
 			DatagramPacket sendPacket = new DatagramPacket(databyte, string.length(),
 					java.net.InetAddress.getByName("192.168.191.2"), 8001);
-			System.out.println(receivePacket.getAddress() + " " + receivePacket.getPort());
+			System.out.println("caitao-2");
 			sendSocket.send(sendPacket);
+			System.out.println("caitao-3");
 		}
 		catch (IOException ioe)
 		{
-			jTextArea1.append("网络通信出现错误，问题在于" + e.toString());
+			TextArea1.append("网络通信出现错误，问题在于" + e.toString());
+		}
+		catch(Exception exception)
+		{
+			exception.printStackTrace();
 		}
 	}
 }
