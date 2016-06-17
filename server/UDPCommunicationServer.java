@@ -104,7 +104,8 @@ class CommunicationServer extends JFrame implements Runnable
 			String string = jTextFieldInput.getText().trim();
 			textArea.append(string);
 			byte[] databyte = string.getBytes();
-			sendAddress = receivePacket.getSocketAddress();
+			sendAddress = receivePacket.getSocketAddress();  // 依据接受报文，获取发送方的嵌套字地址
+
 			DatagramPacket sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
 			sendSocket.send(sendPacket);
 		}
@@ -123,7 +124,7 @@ public class UDPCommunicationServer
 {
 	public static void main(String[] args)
 	{
-		CommunicationServer frame1 = new CommunicationServer();
-		frame1.setVisible(true);
+		CommunicationServer UDPserver = new CommunicationServer();
+		UDPserver.setVisible(true);
 	}
 }
