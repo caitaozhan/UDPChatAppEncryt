@@ -23,11 +23,12 @@ class CommunicationServer extends JFrame implements Runnable
 	private int random; // 保密的随机数
 	private int K;      // 双方共享的秘密密钥
 	Thread s;
-	private InetAddress iPAddress;
-	private int port;
+	//private InetAddress iPAddress;
+	//private int port;
 	private DatagramSocket sendSocket, receiveSocket;  // 用于收发UDP数据报
 	private DatagramPacket sendPacket, receivePacket;  // 包含具体的要传输的信息
 	// 为了发送数据，要将数据封装到DatagramPacket中，使用DatagramSocket发送该包
+	private SocketAddress sendAddress;
 	private String  name;
 	private boolean canSend;
 
@@ -99,9 +100,8 @@ class CommunicationServer extends JFrame implements Runnable
 
 				receiveSocket.receive(receivePacket);  // 通过套接字，等待接受数据
 				canSend = true;                        // 必须先受到客户端的消息，我方（服务器）才能够发送消息（给客户端）
-				iPAddress = receivePacket.getAddress();
-				port = receivePacket.getPort();
-				System.out.println("thread: " + iPAddress + "  " + port);
+				
+				sendAddress = receivePacket.getSocketAddress();
 				
 				name = receivePacket.getAddress().toString().trim();
 				textArea.append("\n来自主机:" + name + "\n端口:" + receivePacket.getPort());
@@ -135,8 +135,7 @@ class CommunicationServer extends JFrame implements Runnable
 				textArea.append(string);
 				byte[] databyte = string.getBytes();
 				
-				System.out.println("action performed: " + iPAddress + "  " + port);
-				sendPacket = new DatagramPacket(databyte, databyte.length, iPAddress, port);
+				sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
 				sendSocket.send(sendPacket);
 				
 				canSend = false;  // 恢复为“不能发送”的状态，等待客户端发送下一个消息
