@@ -3,7 +3,6 @@ package server;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.rmi.ssl.SslRMIClientSocketFactory;
 import javax.swing.*;
 
 import java.math.BigInteger;
@@ -17,14 +16,14 @@ class CommunicationServer extends JFrame implements Runnable
 	private TextArea   textArea;
 	private JTextField jTextFieldInput;
 	private JPanel     panelNorth;
-	private JButton    keyButton;
+	private JButton    rButton;      // 产生 R
+	private JButton    keyButton;    // 产生共享 key
 	private int p;      // 素数
 	private int g;      // p的原根
 	private int random; // 保密的随机数
+	private String r1;  // 对方的R1（假设我是Bob）
 	private int K;      // 双方共享的秘密密钥
 	Thread s;
-	//private InetAddress iPAddress;
-	//private int port;
 	private DatagramSocket sendSocket, receiveSocket;  // 用于收发UDP数据报
 	private DatagramPacket sendPacket, receivePacket;  // 包含具体的要传输的信息
 	// 为了发送数据，要将数据封装到DatagramPacket中，使用DatagramSocket发送该包
@@ -50,8 +49,10 @@ class CommunicationServer extends JFrame implements Runnable
 		myLabel = new JLabel("通信记录");
 		panelNorth = new JPanel();
 		panelNorth.add(myLabel);
+		panelNorth.add(getRButton());
 		panelNorth.add(getKeyButton());
 		jTextFieldInput = new JTextField();
+		jTextFieldInput.setEditable(false);
 		textArea = new TextArea();
 		textArea.setEditable(false);
 		canSend = false;
@@ -62,7 +63,7 @@ class CommunicationServer extends JFrame implements Runnable
 			random = (int) (Math.random()*p);
 		}while(random <= 1);
 
-		setSize(400, 200);
+		setSize(400, 400);
 		setTitle("UDPServer");
 		add(panelNorth, BorderLayout.NORTH);
 		add(textArea, BorderLayout.CENTER);
@@ -109,6 +110,11 @@ class CommunicationServer extends JFrame implements Runnable
 				byte[] data = receivePacket.getData();
 				String receivedString = new String(data);
 				textArea.append(receivedString);
+				
+				if(jTextFieldInput.isEditable() == false)  // 最开始计算共享密钥的时候，jTextFieldInput 无法编辑
+				{
+					r1 = receivedString.trim();
+				}
 			}
 			catch (IOException e)
 			{
@@ -155,22 +161,87 @@ class CommunicationServer extends JFrame implements Runnable
 		}
 	}
 	
+	public JButton getRButton()
+	{
+		if(rButton == null)  // 当第一次调用这个方法的时候，rButton == null，进行初始化操作
+		{
+			rButton = new JButton("产生 R");
+			rButton.addActionListener(new ActionListener()
+			{
+				@Override
+				public void actionPerformed(ActionEvent e)
+				{
+					try
+					{
+						if(canSend == true)
+						{
+							String G = String.valueOf(g);
+							String R2 = modularExponentiation(G);  // 假设我是Bob，产生 R2
+							textArea.append("\n产生R=" + R2);
+							byte[] databyte = R2.getBytes();
+							
+							sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
+							sendSocket.send(sendPacket);           // 发送 R2
+							
+							canSend = false;  // 恢复为“不能发送”的状态，等待客户端发送下一个消息
+							rButton.setVisible(false);   // “产生R”的按钮消失
+							keyButton.setVisible(true);  // “产生共享key”的按钮出现
+						}
+						else 
+						{
+							System.out.println("不知道发送给谁");
+						}
+					}
+					catch (IOException ioe)
+					{
+						textArea.append("网络通信出现错误，问题在于" + e.toString());
+					}
+					catch (Exception exception)
+					{
+						exception.printStackTrace();
+					}
+				}
+			});
+		}
+		return rButton;
+	}
+	
 	public JButton getKeyButton()
 	{
-		if(keyButton == null)
+		if(keyButton == null)  // 当第一次调用这个方法的时候，keyButton == null，进行初始化操作
 		{
-			keyButton = new JButton("get Key");
+			keyButton = new JButton("产生共享Key");
+			keyButton.setVisible(false);;
 			keyButton.addActionListener(new ActionListener()
 			{
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					System.out.println("key generation algorithm");
+					try
+					{
+						System.out.println(r1);
+						String key = modularExponentiation(r1);  // 产生共享的key
+						K = Integer.parseInt(key);
+						textArea.append("\n共享密钥是: " + key);
+						
+						canSend = false;  // 恢复为“不能发送”的状态，等待客户端发送下一个消息
+						keyButton.setVisible(false);             // “产生共享key”按钮消失 
+						jTextFieldInput.setEnabled(true);        // 输入栏可以编辑
+					}
+					catch (NumberFormatException nfe)
+					{
+						textArea.append("String 转换 int 异常");
+					}
+					catch (Exception exception)
+					{
+						exception.printStackTrace();
+					}
 				}
 			});
 		}
 		return keyButton;
 	}
+	
 	
 	public String modularExponentiation(String base)  // 模幂运算
 	{
@@ -187,5 +258,11 @@ public class UDPCommunicationServer
 	{
 		CommunicationServer UDPserver = new CommunicationServer();
 		UDPserver.setVisible(true);
+		
+		/*String base = "10";
+		String key = UDPserver.modularExponentiation(base);
+		System.out.println(key);*/
+		
+		
 	}
 }
