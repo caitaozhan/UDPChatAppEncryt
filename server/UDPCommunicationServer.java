@@ -262,7 +262,7 @@ class CommunicationServer extends JFrame implements Runnable
 	{
 		if(keyButton == null)  // 当第一次调用这个方法的时候，keyButton == null，进行初始化操作
 		{
-			keyButton = new JButton("产生共享Key");
+			keyButton = new JButton("产生共享密钥");
 			keyButton.setVisible(false);;
 			keyButton.addActionListener(new ActionListener()
 			{

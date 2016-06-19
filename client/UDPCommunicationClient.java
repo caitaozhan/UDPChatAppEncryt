@@ -23,7 +23,7 @@ class CommunicationClient extends JFrame implements Runnable
 	TextArea jTextArea1 = new TextArea(100, 100);
 	JLabel jLabel2 = new JLabel();
 	JTextField jTextField1 = new JTextField();
-	JButton jb = new JButton("发送我的公钥");
+	JButton jb = new JButton("产生发送密钥");
 	JButton jb2 = new JButton("产生共享密钥");
 	Thread c;
 	private DatagramSocket sendSocket;
@@ -363,7 +363,7 @@ class CommunicationClient extends JFrame implements Runnable
 
 }
 
-public class UDPClientTest
+public class UDPCommunicationClient
 {
 	public static void main(String[] args)
 	{
