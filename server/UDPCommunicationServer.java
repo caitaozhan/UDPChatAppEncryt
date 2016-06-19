@@ -110,8 +110,7 @@ class CommunicationServer extends JFrame implements Runnable
 				datagramSocket.receive(receivePacket);  // 通过套接字，等待接受数据
 				canSend = true;                         // 必须先受到客户端的消息，我方（服务器）才能够发送消息（给客户端）
 				sendAddress = receivePacket.getSocketAddress();
-				name = receivePacket.getAddress().toString().trim();
-				textArea.append("\n来自主机:" + name + " 端口:" + receivePacket.getPort());
+				
 				byte[] databyte = receivePacket.getData();
 				
 				if(jTextFieldInput.isEditable() == true)   // 当jTextFieldInput可以编辑的时候，可以发送信息，此时才进行加密
@@ -138,10 +137,13 @@ class CommunicationServer extends JFrame implements Runnable
 					
 					databyte = DES.decrypt(databyte, sharedKey);   
 					String receivedString = new String(databyte);
-					textArea.append("明文是：" + receivedString + '\n');
+					textArea.append("\n客户端明文是：" + receivedString + '\n');
 				}
 				if(jTextFieldInput.isEditable() == false)  // 当jTextFieldInput无法编辑的时候(初始阶段), 接受的是共享密钥
 				{
+					name = receivePacket.getAddress().toString().trim();
+					textArea.append("\n来自主机:" + name + " 端口:" + receivePacket.getPort());
+					
 					r1 = new String(databyte);
 					r1 = r1.trim();                        // 把多余的空格删除掉
 					textArea.append("\n客户端的R1 = " + r1);
@@ -171,7 +173,7 @@ class CommunicationServer extends JFrame implements Runnable
 		{
 			if (canSend == true)  // 必须先等待客户端先发送消息
 			{
-				textArea.append("\n服务器:");
+				textArea.append("\n服务端:");
 				String string = jTextFieldInput.getText().trim();
 				textArea.append(string);
 				byte[] databyte = string.getBytes();
