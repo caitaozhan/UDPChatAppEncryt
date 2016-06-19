@@ -216,7 +216,7 @@ class CommunicationServer extends JFrame implements Runnable
 	{
 		if(rButton == null)  // 当第一次调用这个方法的时候，rButton == null，进行初始化操作
 		{
-			rButton = new JButton("产生并发送R2");
+			rButton = new JButton("产生发送R2");
 			rButton.addActionListener(new ActionListener()
 			{
 				@Override
