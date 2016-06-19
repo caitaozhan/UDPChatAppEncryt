@@ -15,7 +15,7 @@ class CommunicationClient extends JFrame implements Runnable
 	private int p = 97;
 	private String publicKeyB = "";//B的公钥
 	private String K = "";//共享的密钥
-	private String sendIPAddress="192.168.191.1";
+	private String sendIPAddress="127.0.0.1";
 	private int sendPort=8002;
 
 	JPanel contentPane;
@@ -23,7 +23,7 @@ class CommunicationClient extends JFrame implements Runnable
 	TextArea jTextArea1 = new TextArea(100, 100);
 	JLabel jLabel2 = new JLabel();
 	JTextField jTextField1 = new JTextField();
-	JButton jb = new JButton("产生发送密钥");
+	JButton jb = new JButton("产生发送R1");
 	JButton jb2 = new JButton("产生共享密钥");
 	Thread c;
 	private DatagramSocket sendSocket;
