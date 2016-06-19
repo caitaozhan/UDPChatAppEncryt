@@ -1,6 +1,5 @@
 package server;
 
-import des.*;  // DES 算法
 
 import java.awt.*;
 import java.awt.event.*;
@@ -67,7 +66,7 @@ class CommunicationServer extends JFrame implements Runnable
 		}while(random <= 1);
 
 		setBounds(400, 100, 400, 400);
-		setTitle("UDPServer Copyright 詹才韬");
+		setTitle("UDPServer-詹才韬");
 		add(panelNorth, BorderLayout.NORTH);
 		add(textArea, BorderLayout.CENTER);
 		add(jTextFieldInput, BorderLayout.SOUTH);
@@ -141,6 +140,7 @@ class CommunicationServer extends JFrame implements Runnable
 				}
 				if(jTextFieldInput.isEditable() == false)  // 当jTextFieldInput无法编辑的时候(初始阶段), 接受的是共享密钥
 				{
+					textArea.append("https://github.com/caitaozhan/UDPChatAppEncryt");
 					name = receivePacket.getAddress().toString().trim();
 					textArea.append("\n来自主机:" + name + " 端口:" + receivePacket.getPort());
 					
@@ -195,6 +195,7 @@ class CommunicationServer extends JFrame implements Runnable
 				sendPacket = new DatagramPacket(databyteEND, databyteEND.length, sendAddress);
 				datagramSocket.send(sendPacket);
 				
+				jTextFieldInput.setText("");
 				canSend = false;  // 恢复为“不能发送”的状态，等待客户端发送下一个消息
 			}
 			else
