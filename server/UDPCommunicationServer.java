@@ -175,7 +175,7 @@ class CommunicationServer extends JFrame implements Runnable
 			{
 				textArea.append("\n服务端:");
 				String string = jTextFieldInput.getText().trim();
-				textArea.append(string);
+				textArea.append(string + "\n");
 				byte[] databyte = string.getBytes();
 				
 				databyte = DES.encrypt(databyte, sharedKey);  
@@ -229,7 +229,7 @@ class CommunicationServer extends JFrame implements Runnable
 						{
 							String G = String.valueOf(g);
 							String R2 = modularExponentiation(G);  // 假设我是Bob，产生 R2
-							textArea.append("\n服务器端R2 = " + R2);
+							textArea.append("\n服务端的R2 = " + R2);
 							byte[] databyte = R2.getBytes();
 							
 							sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
