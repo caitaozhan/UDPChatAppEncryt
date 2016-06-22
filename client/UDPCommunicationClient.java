@@ -7,6 +7,7 @@ import java.net.*;
 import java.io.*;
 import java.math.BigInteger;
 
+
 class CommunicationClient extends JFrame implements Runnable
 {
 	private static final long serialVersionUID = -1859582902544670970L;
