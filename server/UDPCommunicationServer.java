@@ -16,21 +16,21 @@ class CommunicationServer extends JFrame implements Runnable
 	private TextArea textArea;
 	private JTextField jTextFieldInput;
 	private JPanel panelNorth;
-	private JButton rButton; // 产生 R
+	private JButton rButton;   // 产生 R
 	private JButton keyButton; // 产生共享 key
-	private int p; // 素数
-	private int g; // p的原根
-	private int random; // 保密的随机数
-	private String r1; // 对方的R1（假设我是Bob）
-	private String sharedKey; // 双方共享的密钥
+	private int p;             // 素数
+	private int g;             // p的原根
+	private int random;        // 保密的随机数
+	private String r1;         // 对方的R1（假设我是Bob）
+	private String sharedKey;  // 双方共享的密钥
 	Thread s;
-	private DatagramSocket datagramSocket; // 用于收发UDP数据报
+	private DatagramSocket datagramSocket;            // 用于收发UDP数据报
 	private DatagramPacket sendPacket, receivePacket; // 包含具体的要传输的信息
 	// 为了发送数据，要将数据封装到DatagramPacket中，使用DatagramSocket发送该包
 	private SocketAddress sendAddress;
 	private String name;
 	private boolean canSend;
-	private byte[] ESCEOT; // 帧定界符
+	private byte[] ESCEOT;      // 帧定界符
 
 	public CommunicationServer()
 	{
@@ -73,11 +73,10 @@ class CommunicationServer extends JFrame implements Runnable
 		{
 			jTextFieldInput_actionPerformed(e);
 		}); // 使用lambda替换匿名类
-		
+
 		try
 		{
-			datagramSocket = new DatagramSocket(8002); // 创建接收方的套接字，IP(chosen by
-														// the kernal),端口号8002
+			datagramSocket = new DatagramSocket(8002);  // 创建接收方的套接字，IP(chosen by the kernal), 端口号8002
 			// System.out.println(datagramSocket.getPort()); // 为什么是 -1 ?
 		}
 		catch (SocketException e)
@@ -96,7 +95,7 @@ class CommunicationServer extends JFrame implements Runnable
 		s.start();
 	}
 
-	public void run() // java 里面，swing那一些控件，是专门一个线程么？
+	public void run()         // java 里面，swing那一些控件，是专门一个线程么？
 	{
 		while (true)
 		{
@@ -104,8 +103,8 @@ class CommunicationServer extends JFrame implements Runnable
 			{
 				byte buf[] = new byte[1024];
 				receivePacket = new DatagramPacket(buf, buf.length); // 可以不是每一次都new么？用同一个
-				datagramSocket.receive(receivePacket); // 通过套接字，等待接受数据
-				canSend = true; // 必须先受到客户端的消息，我方（服务器）才能够发送消息（给客户端）
+				datagramSocket.receive(receivePacket);  // 通过套接字，等待接受数据
+				canSend = true;                         // 必须先受到客户端的消息，我方（服务器）才能够发送消息（给客户端）
 				sendAddress = receivePacket.getSocketAddress();
 
 				byte[] databyte = receivePacket.getData();
@@ -136,15 +135,14 @@ class CommunicationServer extends JFrame implements Runnable
 					String receivedString = new String(databyte);
 					textArea.append("\n客户端明文是：" + receivedString + '\n');
 				}
-				if (jTextFieldInput.isEditable() == false) // 当jTextFieldInput无法编辑的时候(初始阶段),
-															// 接受的是共享密钥
+				if (jTextFieldInput.isEditable() == false) // 当jTextFieldInput无法编辑的时候(初始阶段), 接受的是共享密钥
 				{
 					textArea.append("https://github.com/caitaozhan/UDPChatAppEncryt");
 					name = receivePacket.getAddress().toString().trim();
 					textArea.append("\n来自主机:" + name + " 端口:" + receivePacket.getPort());
 
 					r1 = new String(databyte);
-					r1 = r1.trim(); // 把多余的空格删除掉
+					r1 = r1.trim();
 					textArea.append("\n客户端的R1 = " + r1);
 				}
 			}
@@ -197,7 +195,7 @@ class CommunicationServer extends JFrame implements Runnable
 				datagramSocket.send(sendPacket);
 
 				jTextFieldInput.setText("");
-				canSend = false; // 恢复为“不能发送”的状态，等待客户端发送下一个消息
+				canSend = false;             // 恢复为“不能发送”的状态，等待客户端发送下一个消息
 			}
 			else
 			{
@@ -219,24 +217,23 @@ class CommunicationServer extends JFrame implements Runnable
 		if (rButton == null) // 当第一次调用这个方法的时候，rButton == null，进行初始化操作
 		{
 			rButton = new JButton("产生发送R2");
-			rButton.addActionListener((ActionEvent e) -> 
+			rButton.addActionListener((ActionEvent e) ->
 			{
 				try
 				{
 					if (canSend == true)
 					{
 						String G = String.valueOf(g);
-						String R2 = modularExponentiation(G); // 假设我是Bob，产生
-																// R2
+						String R2 = modularExponentiation(G); // 假设我是Bob，产生 R2
 						textArea.append("\n服务端的R2 = " + R2);
 						byte[] databyte = R2.getBytes();
 
 						sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
 						datagramSocket.send(sendPacket); // 发送 R2
 
-						canSend = false; // 恢复为“不能发送”的状态，等待客户端发送下一个消息
-						rButton.setVisible(false); // “产生R”的按钮消失
-						keyButton.setVisible(true); // “产生共享key”的按钮出现
+						canSend = false;                 // 恢复为“不能发送”的状态，等待客户端发送下一个消息
+						rButton.setVisible(false);       // “产生R”的按钮消失
+						keyButton.setVisible(true);      // “产生共享key”的按钮出现
 					}
 					else
 					{
@@ -266,13 +263,13 @@ class CommunicationServer extends JFrame implements Runnable
 			{
 				try
 				{
-					String key = modularExponentiation(r1); // 产生sharedKey（不是8位）
+					String key = modularExponentiation(r1);      // 产生sharedKey（不是8位）
 					sharedKey = NormalizeToEight.normalize(key); // 规格化成为8位的sharedKey
 					textArea.append("\n共享密钥是: " + sharedKey + "\n产生共享密钥使用了 Diffie-Hellman-Caitao算法\n");
 					textArea.append("加密算法使用了 DES算法\n-----------请放心，以下通信是经过加密的！------------\n");
-					canSend = false; // 恢复为“不能发送”的状态，等待客户端发送下一个消息
-					keyButton.setVisible(false); // “产生共享key”按钮消失
-					jTextFieldInput.setEditable(true); // 输入栏可以编辑
+					canSend = false;                             // 恢复为“不能发送”的状态，等待客户端发送下一个消息
+					keyButton.setVisible(false);                 // “产生共享key”按钮消失
+					jTextFieldInput.setEditable(true);           // 输入栏可以编辑
 				}
 				catch (NumberFormatException nfe)
 				{
@@ -289,9 +286,9 @@ class CommunicationServer extends JFrame implements Runnable
 
 	public String modularExponentiation(String base) // 模幂运算
 	{
-		BigInteger tmp = new BigInteger(base); // tmp = base
-		tmp = tmp.pow(random); // tmp = base^random
-		tmp = tmp.mod(BigInteger.valueOf(p)); // tmp = tmp%p
+		BigInteger tmp = new BigInteger(base);       // tmp = base
+		tmp = tmp.pow(random);                       // tmp = base^random
+		tmp = tmp.mod(BigInteger.valueOf(p));        // tmp = tmp%p
 		return tmp.toString();
 	}
 
