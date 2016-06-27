@@ -3,10 +3,13 @@ package server;
 public class FindByteArray
 {
 
-	/*
-	 * 在 字节数组data中寻找字节数组target
-	 * 如果找到，返回第一次出现的index
-	 * 如果没有找到，返回-1
+	/**
+	 * 在字节数组data中寻找字节数组target<br>
+	 * 如果找到，返回第一次出现的index<br>如果没有找到，返回-1
+	 * 
+	 * @param data 数据
+	 * @param target 待查找的目标
+	 * @return target[0]在data中出现的下标
 	 */
 	public static int findByteArray(byte[] data, byte[] target)
 	{

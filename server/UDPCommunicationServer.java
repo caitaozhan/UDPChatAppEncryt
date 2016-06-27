@@ -9,6 +9,11 @@ import java.math.BigInteger;
 import java.net.*;
 import java.io.*;
 
+/**
+ * 实现了基于UDP的“服务器-客户端”通信，通信内容加密<br>
+ * @author Caitao Zhan
+ * @see <a href="https://github.com/caitaozhan/UDPChatAppEncryt">Github</a>
+ */
 class CommunicationServer extends JFrame implements Runnable
 {
 	private static final long serialVersionUID = -2346534561072742542L;
@@ -284,7 +289,14 @@ class CommunicationServer extends JFrame implements Runnable
 		return keyButton;
 	}
 
-	public String modularExponentiation(String base) // 模幂运算
+	/**
+	 * 模幂运算
+	 * 
+	 * @param base 底数
+	 * @return 模幂运算结果
+	 * 
+	 */
+	public String modularExponentiation(String base) 
 	{
 		BigInteger tmp = new BigInteger(base);       // tmp = base
 		tmp = tmp.pow(random);                       // tmp = base^random
@@ -292,9 +304,13 @@ class CommunicationServer extends JFrame implements Runnable
 		return tmp.toString();
 	}
 
-	/*
+	/**
 	 * 把array2 复制给array1 复制成功返回true 复制失败返回false
-	 */
+	 * 
+	 * @param array1 一个字节数组
+	 * @param array2 待被复制的字节数组
+	 * @return 是否复制成功
+ 	 */
 	public boolean copyByteArray(byte[] array1, byte[] array2)
 	{
 		if (array1.length != array2.length)

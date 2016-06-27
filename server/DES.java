@@ -6,6 +6,10 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.SecretKey;
 import javax.crypto.Cipher;
 
+/**
+ * 实现了DES对称加密算法，要求密钥长度大于等于8位
+ * 
+ */
 public class DES
 {
 	public DES()

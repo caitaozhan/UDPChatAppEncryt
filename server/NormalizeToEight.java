@@ -5,8 +5,11 @@ import java.math.BigInteger;
 
 public class NormalizeToEight
 {	
-	/*
+	/**
 	 * 把一个不是8位的sharedKey，规格化为一个8位的字符串
+	 * 
+	 * @param sharedKey 不是8位的共享密钥
+	 * @return 8位的共享密钥
 	 */
 	public static String normalize(String sharedKey)
 	{
