@@ -274,36 +274,6 @@ class CommunicationClient extends JFrame implements Runnable
 		return true;
 	}
 	
-	/*
-	 * 在 字节数组data中寻找字节数组target
-	 * 如果找到，返回第一次出现的index
-	 * 如果没有找到，返回-1
-	 */
-	public static int findByteArray(byte[] data, byte[] target)
-	{
-		byte[] tmp = new byte[4];
-		for(int i = 0; i < data.length; i++)
-		{
-			if(i + 3 < data.length)
-			{	
-				tmp[0] = data[i];
-				tmp[1] = data[i + 1];
-				tmp[2] = data[i + 2];
-				tmp[3] = data[i + 3];
-			}
-			else 
-			{
-				break;     // 此时肯定找不到了
-			}
-			
-			if(compare(tmp, target))
-			{
-				return i;  // 找到了，返回第一次出现的数组下标
-			}
-			
-		}
-		return -1;
-	}
 	
 	/*
 	 * 直接数组array1和array2相比较
