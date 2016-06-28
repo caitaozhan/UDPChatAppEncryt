@@ -5,10 +5,15 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.net.*;
 import java.io.*;
-import security.DES;
+import security.*;
 import java.math.BigInteger;
 
-
+/**
+ * 
+ * @author LM
+ *
+ * TODO 1.重构  2.画图  3.代码修改
+ */
 class CommunicationClient extends JFrame implements Runnable
 {
 	private static final long serialVersionUID = -1859582902544670970L;
@@ -30,6 +35,7 @@ class CommunicationClient extends JFrame implements Runnable
 	Thread c;
 	private DatagramSocket sendSocket;
 	private DatagramPacket receivePacket;
+	MD5 md5;
 
 	public CommunicationClient()
 	{
@@ -48,6 +54,7 @@ class CommunicationClient extends JFrame implements Runnable
 		{
 			random = (int) (Math.random() * p);
 		} while (random <= 1);
+		md5 = new MD5("");
 		contentPane = (JPanel) this.getContentPane();
 		contentPane.setLayout(null);
 		this.setSize(new Dimension(400, 500));
@@ -130,10 +137,21 @@ class CommunicationClient extends JFrame implements Runnable
 				{
 					
 					byte[] databyte = new byte[dataLength];     // 把 databyte_0 后面的 0 去掉
-					copyByteArray(databyte, databyte_0, dataLength);
+					ByteArrayUtil.copyByteArray(databyte, databyte_0, dataLength);
 					
-					byte[] data1 = DES.decrypt(databyte, K);
+					byte[] md5Byte = null;
+					byte[] encryptByte = null;
+					
+					ByteArrayUtil.seperate(databyte, md5Byte, encryptByte);  // 拆分
+					
+					byte[] data1 = DES.decrypt(encryptByte, K);
 					receiveString = new String(data1);
+					
+					md5.updateInstance(new String(data1));
+					String md5_2 = md5.getMD5();
+					byte[] md5Byte2 = md5_2.getBytes();
+					
+					//TODO 判断两个 md5Byte 是否一致，然后做相关处理
 					
 					jTextArea1.append("\n服务端密文是:");
 					jTextArea1.append(new String(databyte));
@@ -171,7 +189,13 @@ class CommunicationClient extends JFrame implements Runnable
 				jTextField1.setText("");
 				byte[] databyte = string1.getBytes();
 				
+				md5.updateInstance(string1);
+				String stringMD5 = md5.getMD5();
+				byte[] md5Byte = stringMD5.getBytes();                // MD5报文鉴别码
+				
 				databyte = DES.encrypt(databyte, K);
+				
+				databyte = ByteArrayUtil.combine(md5Byte, databyte);  // 把MD5和密文一起发过去
 
 				DatagramPacket sendPacket = new DatagramPacket(databyte, databyte.length,
 						java.net.InetAddress.getByName(sendIPAddress), sendPort);
@@ -209,7 +233,7 @@ class CommunicationClient extends JFrame implements Runnable
 	public void jb2_actionPerformed(ActionEvent e)
 	{
 		K = modularExponentiation(publicKeyB.trim());
-		K = normalize(K);
+		K = NormalizeToEight.normalize(K);
 		jTextArea1.append("\n共享密钥是："+K+"\n");
 		jTextArea1.append("\n产生共享密钥使用了 Diffie-Hellman-Caitao算法");
 		jTextArea1.append("\n加密算法使用了 DES算法");
@@ -227,73 +251,6 @@ class CommunicationClient extends JFrame implements Runnable
 		tmp = tmp.mod(BigInteger.valueOf(p));    // tmp = tmp%p
 		return tmp.toString();
 	}
-
-	/*
-	 * 把一个不是8位的sharedKey，规格化为一个8位的字符串
-	 */
-	public String normalize(String sharedKey)
-	{
-		StringBuffer normalizedKey = new StringBuffer();
-		try
-		{
-			int sharedKeyInt = Integer.parseInt(sharedKey);
-			BigInteger billion = new BigInteger("1000000000");
-			BigInteger tmp = new BigInteger(sharedKey);
-			while (tmp.compareTo(billion) == -1) // 当 tmp < billion
-			{
-				tmp = tmp.pow(sharedKeyInt);
-			}
-			String tmpStr = tmp.toString();
-			normalizedKey.append(tmpStr.substring(0, 4));
-			normalizedKey.append(tmpStr.substring(tmpStr.length() - 4, tmpStr.length()));
-
-			return normalizedKey.toString();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		return null;
-	}
-	/**
-	 * 把array2 复制给array1 复制成功返回true 复制失败返回false
-	 * 
-	 * @param array1 一个字节数组
-	 * @param array2 待被复制的字节数组
-	 * @param array2中待复制数据的长度
-	 * @return 是否复制成功
- 	 */
-	public boolean copyByteArray(byte[] array1, byte[] array2, int array2Length)
-	{
-		if (array1.length != array2Length || array2.length < array2Length)
-			return false;
-
-		for (int i = 0; i < array1.length; i++)
-		{
-			array1[i] = array2[i];
-		}
-		return true;
-	}
-	
-	
-	/*
-	 * 直接数组array1和array2相比较
-	 * 如果一模一样，返回true
-	 * 如果有不同，返回false
-	 */
-	public static boolean compare(byte[] array1, byte[] array2)
-	{
-		if(array1.length != array2.length)  // 长度都不一样，返回false
-			return false;
-		
-		for(int i = 0; i < array1.length; i++)
-		{
-			if(array1[i] != array2[i])
-				return false;
-		}
-		return true;
-	}
-
 
 }
 
