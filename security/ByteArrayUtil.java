@@ -1,5 +1,6 @@
 package security;
 
+
 /**
  * 
  * @author Caitao Zhan (caitaozhan@163.com)
@@ -71,6 +72,25 @@ public class ByteArrayUtil
 		{
 			encryptByte[i] = combined[index];
 		}
+	}
+	
+	/**
+	 * 判断两个byte数组是否一模一样
+	 * @param array1
+	 * @param array2
+	 * @return
+	 */
+	public static boolean equal(byte[] array1, byte[] array2)
+	{
+		if(array1.length != array2.length)      // 长度不想等
+			return false;
+		
+		for(int i = 0; i < array1.length; i++)
+		{
+			if(array1[i] != array2[i])          // 有一个直接不想等
+				return false;
+		}
+		return true;
 	}
 	
 	public static void main(String[] args)

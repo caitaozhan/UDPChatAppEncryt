@@ -177,6 +177,17 @@ public class MD5
 		this.instance = str;
 	}
 
+	/**
+	 * 更新 instance (MD5算法对instance成员变量进行报文摘要运算)
+	 * 
+	 * @param instance
+	 * @author Caitao Zhan
+	 */
+	public void updateInstance(String instance)
+	{
+		this.instance = instance;
+	}
+	
 	public static void main(String[] args)
 	{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));

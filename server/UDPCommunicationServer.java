@@ -37,6 +37,7 @@ class CommunicationServer extends JFrame implements Runnable
 	private SocketAddress sendAddress;
 	private String name;
 	private boolean canSend;
+	MD5 md5;
 
 	public CommunicationServer()
 	{
@@ -65,6 +66,7 @@ class CommunicationServer extends JFrame implements Runnable
 		canSend = false;
 		p = 97;
 		g = 5;
+		md5 = new MD5("");
 		do
 		{
 			random = (int) (Math.random() * p);
@@ -116,8 +118,19 @@ class CommunicationServer extends JFrame implements Runnable
 
 					byte[] databyte = new byte[dataLength];          // 把 databyte_0 后面的 0 去掉
 					ByteArrayUtil.copyByteArray(databyte, databyte_0, dataLength);
-
-					databyte = DES.decrypt(databyte, sharedKey);
+					
+					byte[] md5Byte = null;
+					byte[] encryptByte = null;
+					
+					ByteArrayUtil.seperate(databyte, md5Byte, encryptByte);  // 拆分
+					
+					databyte = DES.decrypt(encryptByte, sharedKey);
+					
+					md5.updateInstance(new String(databyte));
+					String md5_2 = md5.getMD5();
+					byte[] md5Byte2 = md5_2.getBytes();
+					
+					//TODO 判断两个 md5Byte 是否一致，然后做相关处理
 
 					String receivedString = new String(databyte);
 					textArea.append("\n客户端明文是：" + receivedString + '\n');
@@ -164,7 +177,7 @@ class CommunicationServer extends JFrame implements Runnable
 				textArea.append(sendString + "\n");
 				byte[] databyte = sendString.getBytes();
 
-				MD5 md5 = new MD5(sendString);
+				md5.updateInstance(sendString);
 				String stringMD5 = md5.getMD5();
 				byte[] md5Byte = stringMD5.getBytes();                // MD5报文鉴别码
 
