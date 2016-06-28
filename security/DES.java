@@ -1,4 +1,4 @@
-package server;
+package security;
 
 import java.security.SecureRandom;
 import javax.crypto.spec.DESKeySpec;

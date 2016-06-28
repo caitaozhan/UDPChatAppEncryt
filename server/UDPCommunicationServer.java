@@ -5,6 +5,8 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import security.DES;
+
 import java.math.BigInteger;
 import java.net.*;
 import java.io.*;
