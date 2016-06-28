@@ -5,7 +5,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
-import security.DES;
+import security.*;
 
 import java.math.BigInteger;
 import java.net.*;
@@ -13,7 +13,7 @@ import java.io.*;
 
 /**
  * 实现了基于UDP的“服务器-客户端”通信，通信内容加密<br>
- * @author Caitao Zhan
+ * @author Caitao Zhan (caitaozhan@163.com)
  * @see <a href="https://github.com/caitaozhan/UDPChatAppEncryt">Github</a>
  */
 class CommunicationServer extends JFrame implements Runnable
@@ -115,10 +115,10 @@ class CommunicationServer extends JFrame implements Runnable
 					textArea.append("\n客户端密文是：" + new String(databyte_0) + '\n');
 
 					byte[] databyte = new byte[dataLength];          // 把 databyte_0 后面的 0 去掉
-					copyByteArray(databyte, databyte_0, dataLength);
+					ByteArrayUtil.copyByteArray(databyte, databyte_0, dataLength);
 
 					databyte = DES.decrypt(databyte, sharedKey);
-					
+
 					String receivedString = new String(databyte);
 					textArea.append("\n客户端明文是：" + receivedString + '\n');
 				}
@@ -160,11 +160,17 @@ class CommunicationServer extends JFrame implements Runnable
 			if (canSend == true) // 必须先等待客户端先发送消息
 			{
 				textArea.append("\n服务端:");
-				String string = jTextFieldInput.getText().trim();
-				textArea.append(string + "\n");
-				byte[] databyte = string.getBytes();
+				String sendString = jTextFieldInput.getText().trim();
+				textArea.append(sendString + "\n");
+				byte[] databyte = sendString.getBytes();
 
-				databyte = DES.encrypt(databyte, sharedKey);
+				MD5 md5 = new MD5(sendString);
+				String stringMD5 = md5.getMD5();
+				byte[] md5Byte = stringMD5.getBytes();                // MD5报文鉴别码
+
+				databyte = DES.encrypt(databyte, sharedKey);          // 生成密文
+
+				databyte = ByteArrayUtil.combine(md5Byte, databyte);  // 把MD5和密文一起发过去
 
 				sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
 				datagramSocket.send(sendPacket);
@@ -266,7 +272,7 @@ class CommunicationServer extends JFrame implements Runnable
 	 * @return 模幂运算结果
 	 * 
 	 */
-	public String modularExponentiation(String base) 
+	public String modularExponentiation(String base)
 	{
 		BigInteger tmp = new BigInteger(base);       // tmp = base
 		tmp = tmp.pow(random);                       // tmp = base^random
@@ -274,25 +280,6 @@ class CommunicationServer extends JFrame implements Runnable
 		return tmp.toString();
 	}
 
-	/**
-	 * 把array2 复制给array1 复制成功返回true 复制失败返回false
-	 * 
-	 * @param array1 一个字节数组
-	 * @param array2 待被复制的字节数组
-	 * @param array2中待复制数据的长度
-	 * @return 是否复制成功
- 	 */
-	public boolean copyByteArray(byte[] array1, byte[] array2, int array2Length)
-	{
-		if (array1.length != array2Length || array2.length < array2Length)
-			return false;
-
-		for (int i = 0; i < array1.length; i++)
-		{
-			array1[i] = array2[i];
-		}
-		return true;
-	}
 }
 
 public class UDPCommunicationServer

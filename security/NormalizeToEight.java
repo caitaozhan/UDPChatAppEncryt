@@ -1,8 +1,11 @@
-package server;
+package security;
 
 import java.math.BigInteger;
 
-
+/**
+ * 
+ * @author Caitao Zhan (caitaozhan@163.com)
+ */
 public class NormalizeToEight
 {	
 	/**
