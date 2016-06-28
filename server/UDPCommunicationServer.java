@@ -35,7 +35,6 @@ class CommunicationServer extends JFrame implements Runnable
 	private SocketAddress sendAddress;
 	private String name;
 	private boolean canSend;
-	private byte[] ESCEOT;      // 帧定界符
 
 	public CommunicationServer()
 	{
@@ -90,12 +89,6 @@ class CommunicationServer extends JFrame implements Runnable
 			System.exit(1);
 		}
 
-		ESCEOT = new byte[4];
-		ESCEOT[0] = 2;
-		ESCEOT[1] = 7;
-		ESCEOT[2] = 0;
-		ESCEOT[3] = 3;
-
 		s = new Thread(this); // 创建线程
 		s.start();
 	}
@@ -112,31 +105,18 @@ class CommunicationServer extends JFrame implements Runnable
 				canSend = true;                         // 必须先受到客户端的消息，我方（服务器）才能够发送消息（给客户端）
 				sendAddress = receivePacket.getSocketAddress();
 
-				byte[] databyte = receivePacket.getData();
+				byte[] databyte_0 = receivePacket.getData();    // databyte_0 = 真正的数据 + 0...0 (0填空)
+				int dataLength = receivePacket.getLength();     // 真正的数据的长度
 
 				if (jTextFieldInput.isEditable() == true) // 当jTextFieldInput可以编辑的时候，可以发送信息，此时才进行加密
 				{
-					textArea.append("\n客户端密文是：" + new String(databyte) + '\n');
+					textArea.append("\n客户端密文是：" + new String(databyte_0) + '\n');
 
-					byte[] databyteEOT = new byte[databyte.length];
-					copyByteArray(databyteEOT, databyte);
-
-					int indexEOT = FindByteArray.findByteArray(databyteEOT, ESCEOT); // 找到在哪里填空了字节
-
-					if (indexEOT != -1) // 把帧定界符去掉
-					{// 减去字节填充
-						databyte = new byte[indexEOT];
-						for (int i = 0; i < indexEOT; i++)
-						{
-							databyte[i] = databyteEOT[i];
-						}
-					}
-					else
-					{
-						throw new Exception("没有找到 EOT");
-					}
+					byte[] databyte = new byte[dataLength];     // 把 databyte_0 后面的 0 去掉
+					copyByteArray(databyte, databyte_0, dataLength);
 
 					databyte = DES.decrypt(databyte, sharedKey);
+					
 					String receivedString = new String(databyte);
 					textArea.append("\n客户端明文是：" + receivedString + '\n');
 				}
@@ -146,7 +126,7 @@ class CommunicationServer extends JFrame implements Runnable
 					name = receivePacket.getAddress().toString().trim();
 					textArea.append("\n来自主机:" + name + " 端口:" + receivePacket.getPort());
 
-					r1 = new String(databyte);
+					r1 = new String(databyte_0);
 					r1 = r1.trim();
 					textArea.append("\n客户端的R1 = " + r1);
 				}
@@ -184,19 +164,7 @@ class CommunicationServer extends JFrame implements Runnable
 
 				databyte = DES.encrypt(databyte, sharedKey);
 
-				// 增加字节填充: 两个字符ESC,EOT（4个字节长度）
-				int length = databyte.length + 4;
-				byte[] databyteEND = new byte[length];
-				for (int i = 0; i < databyte.length; i++)
-				{
-					databyteEND[i] = databyte[i];
-				}
-				databyteEND[length - 4] = 2;
-				databyteEND[length - 3] = 7; // ESC: 27
-				databyteEND[length - 2] = 0;
-				databyteEND[length - 1] = 3; // EOT: 03
-
-				sendPacket = new DatagramPacket(databyteEND, databyteEND.length, sendAddress);
+				sendPacket = new DatagramPacket(databyte, databyte.length, sendAddress);
 				datagramSocket.send(sendPacket);
 
 				jTextFieldInput.setText("");
@@ -309,11 +277,12 @@ class CommunicationServer extends JFrame implements Runnable
 	 * 
 	 * @param array1 一个字节数组
 	 * @param array2 待被复制的字节数组
+	 * @param array2中待复制数据的长度
 	 * @return 是否复制成功
  	 */
-	public boolean copyByteArray(byte[] array1, byte[] array2)
+	public boolean copyByteArray(byte[] array1, byte[] array2, int array2Length)
 	{
-		if (array1.length != array2.length)
+		if (array1.length != array2Length || array2.length < array2Length)
 			return false;
 
 		for (int i = 0; i < array1.length; i++)
