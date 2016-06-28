@@ -114,24 +114,27 @@ class CommunicationServer extends JFrame implements Runnable
 
 				if (jTextFieldInput.isEditable() == true)            // 当jTextFieldInput可以编辑的时候，可以发送信息，此时才进行加密
 				{
-					textArea.append("\n客户端密文是：" + new String(databyte_0) + '\n');
-
 					byte[] databyte = new byte[dataLength];          // 把 databyte_0 后面的 0 去掉
 					ByteArrayUtil.copyByteArray(databyte, databyte_0, dataLength);
-					
+
 					byte[] md5Byte = null;
 					byte[] encryptByte = null;
-					
 					ByteArrayUtil.seperate(databyte, md5Byte, encryptByte);  // 拆分
-					
-					databyte = DES.decrypt(encryptByte, sharedKey);
-					
+
+					databyte = DES.decrypt(encryptByte, sharedKey);          // 解密：密文 --> 明文
+
 					md5.updateInstance(new String(databyte));
-					String md5_2 = md5.getMD5();
+					String md5_2 = md5.getMD5();                             // MD5：明文 --> MD5验证码
 					byte[] md5Byte2 = md5_2.getBytes();
 					
-					//TODO 判断两个 md5Byte 是否一致，然后做相关处理
-
+					if (ByteArrayUtil.equal(md5Byte, md5Byte2) == false)     // 判断拆分得到的md5 和 解密得到的明文的md5 是否一致，然后做相关处理
+					{
+						throw new MD5Exception("MD5验证码不相等，完整性检测失败！");
+					}
+					
+					textArea.append("\n客户端密文是：" + new String(databyte_0) + '\n');
+					String md5String = new String(md5Byte);
+					textArea.append("\n完整性检测成功，MD5验证码 = " + md5String + "\n");
 					String receivedString = new String(databyte);
 					textArea.append("\n客户端明文是：" + receivedString + '\n');
 				}
@@ -149,6 +152,10 @@ class CommunicationServer extends JFrame implements Runnable
 			catch (IOException ioe)
 			{
 				textArea.append("网络通信出现错误,问题在于" + ioe.toString());
+			}
+			catch (MD5Exception md5e)
+			{
+				textArea.append(md5.toString());
 			}
 			catch (Exception e)
 			{
@@ -178,8 +185,8 @@ class CommunicationServer extends JFrame implements Runnable
 				byte[] databyte = sendString.getBytes();
 
 				md5.updateInstance(sendString);
-				String stringMD5 = md5.getMD5();
-				byte[] md5Byte = stringMD5.getBytes();                // MD5报文鉴别码
+				String MD5str = md5.getMD5();
+				byte[] md5Byte = MD5str.getBytes();                // MD5报文鉴别码
 
 				databyte = DES.encrypt(databyte, sharedKey);          // 生成密文
 
