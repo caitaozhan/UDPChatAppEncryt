@@ -101,18 +101,18 @@ class CommunicationServer extends JFrame implements Runnable
 			{
 				byte buf[] = new byte[1024];
 				receivePacket = new DatagramPacket(buf, buf.length); // 可以不是每一次都new么？用同一个
-				datagramSocket.receive(receivePacket);  // 通过套接字，等待接受数据
-				canSend = true;                         // 必须先受到客户端的消息，我方（服务器）才能够发送消息（给客户端）
+				datagramSocket.receive(receivePacket);               // 通过套接字，等待接受数据
+				canSend = true;                                      // 必须先受到客户端的消息，我方（服务器）才能够发送消息（给客户端）
 				sendAddress = receivePacket.getSocketAddress();
 
-				byte[] databyte_0 = receivePacket.getData();    // databyte_0 = 真正的数据 + 0...0 (0填空)
-				int dataLength = receivePacket.getLength();     // 真正的数据的长度
+				byte[] databyte_0 = receivePacket.getData();         // databyte_0 = 真正的数据 + 0...0 (0填空)
+				int dataLength = receivePacket.getLength();          // 真正的数据的长度
 
-				if (jTextFieldInput.isEditable() == true) // 当jTextFieldInput可以编辑的时候，可以发送信息，此时才进行加密
+				if (jTextFieldInput.isEditable() == true)            // 当jTextFieldInput可以编辑的时候，可以发送信息，此时才进行加密
 				{
 					textArea.append("\n客户端密文是：" + new String(databyte_0) + '\n');
 
-					byte[] databyte = new byte[dataLength];     // 把 databyte_0 后面的 0 去掉
+					byte[] databyte = new byte[dataLength];          // 把 databyte_0 后面的 0 去掉
 					copyByteArray(databyte, databyte_0, dataLength);
 
 					databyte = DES.decrypt(databyte, sharedKey);
@@ -120,7 +120,7 @@ class CommunicationServer extends JFrame implements Runnable
 					String receivedString = new String(databyte);
 					textArea.append("\n客户端明文是：" + receivedString + '\n');
 				}
-				if (jTextFieldInput.isEditable() == false) // 当jTextFieldInput无法编辑的时候(初始阶段), 接受的是共享密钥
+				if (jTextFieldInput.isEditable() == false)           // 当jTextFieldInput无法编辑的时候(初始阶段), 接受的是共享密钥
 				{
 					textArea.append("https://github.com/caitaozhan/UDPChatAppEncryt");
 					name = receivePacket.getAddress().toString().trim();
