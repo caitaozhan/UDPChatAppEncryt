@@ -16,7 +16,7 @@ class CommunicationClient extends JFrame implements Runnable
 	private int p = 97;
 	private String publicKeyB = "";//B的公钥
 	private String K = "";//共享的密钥
-	private String sendIPAddress="127.0.0.1";
+	private String sendIPAddress="59.71.138.126";
 	private int sendPort=8002;
 
 	JPanel contentPane;
@@ -29,7 +29,6 @@ class CommunicationClient extends JFrame implements Runnable
 	Thread c;
 	private DatagramSocket sendSocket;
 	private DatagramPacket receivePacket;
-	private byte[] ESCEOT;  // 帧定界符
 
 	public CommunicationClient()
 	{
@@ -103,11 +102,6 @@ class CommunicationClient extends JFrame implements Runnable
 		{
 			jTextArea1.append("不能打开数据报Socket,或者数据报Socket无法与指定端口连接！");
 		}
-		ESCEOT = new byte[4];
-		ESCEOT[0] = 2;
-		ESCEOT[1] = 7;
-		ESCEOT[2] = 0;
-		ESCEOT[3] = 3;
 		
 		c = new Thread(this);  //创建一个线程
 		c.start();
@@ -122,8 +116,9 @@ class CommunicationClient extends JFrame implements Runnable
 				receivePacket = new DatagramPacket(buf, buf.length);
 				sendSocket.receive(receivePacket);
 				
-				byte[] databyte = receivePacket.getData();
-				String receiveString = new String(databyte);
+				byte[] databyte_0 = receivePacket.getData();
+				int dataLength = receivePacket.getLength();     // 真正的数据的长度
+				String receiveString = new String(databyte_0);
 				if (jTextField1.isEditable() == false)
 				{
 					publicKeyB = receiveString;
@@ -133,23 +128,8 @@ class CommunicationClient extends JFrame implements Runnable
 				if (jTextField1.isEditable())
 				{
 					
-					byte[] databyteEOT = new byte[databyte.length];
-					copyByteArray(databyteEOT, databyte);
-					
-					int indexEOT = findByteArray(databyteEOT, ESCEOT);  // 找到在哪里填空了字节
-					
-					if(indexEOT != -1)                     // 把帧定界符去掉
-					{// 减去字节填充
-						databyte = new byte[indexEOT];
-						for(int i = 0; i < indexEOT; i++)
-						{
-							databyte[i] = databyteEOT[i];
-						}
-					}
-					else
-					{
-						throw new Exception("没有找到 EOT");
-					}
+					byte[] databyte = new byte[dataLength];     // 把 databyte_0 后面的 0 去掉
+					copyByteArray(databyte, databyte_0, dataLength);
 					
 					byte[] data1 = DES.decrypt(databyte, K);
 					receiveString = new String(data1);
@@ -191,29 +171,8 @@ class CommunicationClient extends JFrame implements Runnable
 				byte[] databyte = string1.getBytes();
 				
 				databyte = DES.encrypt(databyte, K);
-				
-				for(int i = 0; i < databyte.length; i++) System.out.print(databyte[i]);
-				System.out.println();
-				
-				//增加字节填充: 两个字符ESC,EOT（4个字节长度）实际中发现，只能填充[0000]
-				int length = databyte.length + 4;
-				byte[] databyteEND = new byte[length];
-				for(int i = 0; i < databyte.length; i++)
-				{
-					databyteEND[i] = databyte[i];
-				}
-				databyteEND[length - 4] = 2;
-				databyteEND[length - 3] = 7;  // ESC: 27
-				databyteEND[length - 2] = 0;
-				databyteEND[length - 1] = 3;  // EOT: 03
-				
-//				jTextArea1.append("\n发送的密文是:");
-//				jTextArea1.append(new String(databyteEND));
-				System.out.println("发送的流：");
-				for(int i = 0; i < databyteEND.length; i++) System.out.print(databyteEND[i]);
-				System.out.println();
-				
-				DatagramPacket sendPacket = new DatagramPacket(databyteEND, databyteEND.length,
+
+				DatagramPacket sendPacket = new DatagramPacket(databyte, databyte.length,
 						java.net.InetAddress.getByName(sendIPAddress), sendPort);
 				sendSocket.send(sendPacket);
 			}
@@ -295,17 +254,20 @@ class CommunicationClient extends JFrame implements Runnable
 		}
 		return null;
 	}
-	/*
-	 * 把array2 复制给array1
-	 * 复制成功返回true
-	 * 复制失败返回false
-	 */
-	public boolean copyByteArray(byte[] array1, byte[] array2)
+	/**
+	 * 把array2 复制给array1 复制成功返回true 复制失败返回false
+	 * 
+	 * @param array1 一个字节数组
+	 * @param array2 待被复制的字节数组
+	 * @param array2中待复制数据的长度
+	 * @return 是否复制成功
+ 	 */
+	public boolean copyByteArray(byte[] array1, byte[] array2, int array2Length)
 	{
-		if(array1.length != array2.length)
+		if (array1.length != array2Length || array2.length < array2Length)
 			return false;
-		
-		for(int i = 0; i < array1.length; i++)
+
+		for (int i = 0; i < array1.length; i++)
 		{
 			array1[i] = array2[i];
 		}
