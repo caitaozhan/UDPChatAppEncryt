@@ -19,7 +19,7 @@ public class DES
 	public static void main(String args[])
 	{
 		//待加密内容
-		String str = "ggg";
+		String str = "caitao";
 		//密码，长度要是8的倍数
 		//String sharedKey = "9588028820109132570743325311898426347857298773549468758875018579537757772163084478873699447306034466200616411960574122434059469100235892702736860872901247123456";
 		String sharedKey = "12345678";
@@ -27,24 +27,14 @@ public class DES
 		
 		byte[] result = DES.encrypt(databyte, sharedKey);
 		
-		int length = result.length + 4;
-		byte[] databyteEND = new byte[length];
-		for(int i = 0; i < result.length; i++)
-		{
-			databyteEND[i] = result[i];
-		}
-		databyteEND[length - 4] = 2;
-		databyteEND[length - 3] = 7;  // ESC: 27
-		databyteEND[length - 2] = 0;
-		databyteEND[length - 1] = 3;  // EOT: 03
-		
-		
-		System.out.println("填充前：");
-		for(int i = 0; i < result.length; i++) System.out.print(result[i]);
+		System.out.println("篡改之前");
+		for(int i = 0; i < result.length; i++) System.out.print(result[i] + " ");
 		System.out.println();
 		
-		System.out.println("填充之后：");
-		for(int i = 0; i < databyteEND.length; i++) System.out.print(databyteEND[i]);
+		result[2] = 'a';
+		
+		System.out.println("篡改之后");
+		for(int i = 0; i < result.length; i++) System.out.print(result[i] + " ");
 		System.out.println();
 		
 		//直接将如上内容解密
