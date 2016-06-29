@@ -7,6 +7,7 @@
 注意序号，需要严格执行先后关系。我们实现了Diffie-Hellman算法，用以进行共享密钥的产生。
 共享密钥是对称相等的，只有client和server双方知道，第三方无法监听。
 在传统的Diffie-Hellman算法基础上，Caitao进行了稍许改进，用以配合DES加密算法的使用。
+
 新的共享密钥的名称是Diffie-Hellman-Caitao算法
 
 client（Alice）                                            server（Bob）
@@ -23,3 +24,6 @@ client（Alice）                                            server（Bob）
 
 三、加密算法
 加密算法我们采用了经典的DES算法，其中的对称密钥使用Diffie-Hellman-Caitao算法产生。
+
+四、完整性检测
+为了防止黑客篡改，我们在程序中加入了MD5算法
