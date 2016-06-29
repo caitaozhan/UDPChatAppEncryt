@@ -150,7 +150,6 @@ class CommunicationClient extends JFrame implements Runnable
 					String md5_2 = md5.getMD5();
 					byte[] md5Byte2 = md5_2.getBytes();
 					
-					//TODO 判断两个 md5Byte 是否一致，然后做相关处理
 					if (ByteArrayUtil.equal(md5Byte, md5Byte2) == false)     // 判断拆分得到的md5 和 解密得到的明文的md5 是否一致，然后做相关处理
 					{
 						throw new MD5Exception("MD5验证码不相等，完整性检测失败！");
