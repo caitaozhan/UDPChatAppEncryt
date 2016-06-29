@@ -60,10 +60,7 @@ public class ByteArrayUtil
 	 */
 	public static void seperate(byte[] combined, byte[] md5Byte, byte[] encryptByte)
 	{
-		int encryptLength = combined.length - 32;  // md5 的长度是定长，32个字节
 		int index = 0;
-		md5Byte = new byte[32];
-		encryptByte = new byte[encryptLength];
 		for(int i = 0; i < md5Byte.length; i++, index++)
 		{
 			md5Byte[i] = combined[index];

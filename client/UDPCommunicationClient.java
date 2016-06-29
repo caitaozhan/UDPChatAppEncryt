@@ -12,7 +12,6 @@ import java.math.BigInteger;
  * 
  * @author LM
  *
- * TODO 1.重构  2.画图  3.代码修改
  */
 class CommunicationClient extends JFrame implements Runnable
 {
@@ -57,18 +56,18 @@ class CommunicationClient extends JFrame implements Runnable
 		md5 = new MD5("");
 		contentPane = (JPanel) this.getContentPane();
 		contentPane.setLayout(null);
-		this.setSize(new Dimension(400, 500));
+		this.setSize(new Dimension(470, 500));
 		this.setLocation(300, 100);
 		this.setTitle("UDPCLient-李铭");
 		jLabel1.setText("通信记录:");
 		jLabel1.setBounds(new Rectangle(16, 5, 68, 27));
 		contentPane.setLayout(null);
-		jTextArea1.setBounds(new Rectangle(15, 33, 349, 340));
+		jTextArea1.setBounds(new Rectangle(15, 33, 430, 340));
 		jTextArea1.setEditable(false);
 		jLabel2.setText("输入通信内容:");
 		jLabel2.setBounds(new Rectangle(17, 383, 92, 37));  //创建输入内容区域
 		jTextField1.setText("client");
-		jTextField1.setBounds(new Rectangle(112, 385, 250, 31));
+		jTextField1.setBounds(new Rectangle(112, 385, 330, 31));
 		jTextField1.setEditable(false);
 		jTextField1.addActionListener(new java.awt.event.ActionListener()
 		{
@@ -77,7 +76,7 @@ class CommunicationClient extends JFrame implements Runnable
 				jTextField1_actionPerformed(e);
 			}
 		});
-		jb.setBounds(new Rectangle(120, 425, 120, 30));
+		jb.setBounds(new Rectangle(160, 425, 120, 30));
 		
 		jb.addActionListener(new java.awt.event.ActionListener()
 		{
@@ -86,7 +85,7 @@ class CommunicationClient extends JFrame implements Runnable
 				jb_actionPerformed(e);
 			}
 		});
-		jb2.setBounds(new Rectangle(120, 425, 120, 30));
+		jb2.setBounds(new Rectangle(160, 425, 120, 30));
 		jb2.setVisible(false);
 		jb2.addActionListener(new java.awt.event.ActionListener()
 		{
@@ -139,8 +138,8 @@ class CommunicationClient extends JFrame implements Runnable
 					byte[] databyte = new byte[dataLength];     // 把 databyte_0 后面的 0 去掉
 					ByteArrayUtil.copyByteArray(databyte, databyte_0, dataLength);
 					
-					byte[] md5Byte = null;
-					byte[] encryptByte = null;
+					byte[] md5Byte = new byte[32];
+					byte[] encryptByte = new byte[databyte.length-32];
 					
 					ByteArrayUtil.seperate(databyte, md5Byte, encryptByte);  // 拆分
 					
@@ -152,20 +151,21 @@ class CommunicationClient extends JFrame implements Runnable
 					byte[] md5Byte2 = md5_2.getBytes();
 					
 					//TODO 判断两个 md5Byte 是否一致，然后做相关处理
+					if (ByteArrayUtil.equal(md5Byte, md5Byte2) == false)     // 判断拆分得到的md5 和 解密得到的明文的md5 是否一致，然后做相关处理
+					{
+						throw new MD5Exception("MD5验证码不相等，完整性检测失败！");
+					}
 					
+					jTextArea1.append("\n完整性检测成功，MD5校验码="+md5_2);
 					jTextArea1.append("\n服务端密文是:");
-					jTextArea1.append(new String(databyte));
+					jTextArea1.append(new String(encryptByte));			
 					jTextArea1.append("\n服务端明文是:");
 					jTextArea1.append(receiveString+"\n");
-				}
-				
-				
-				//       System.out.println("B的公钥："+publicKeyB);	             
+				}            
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
-				//   jTextArea1.append("网络通信出现错误,问题在于" + e.toString());
 			}
 		}
 	}
@@ -193,8 +193,7 @@ class CommunicationClient extends JFrame implements Runnable
 				String stringMD5 = md5.getMD5();
 				byte[] md5Byte = stringMD5.getBytes();                // MD5报文鉴别码
 				
-				databyte = DES.encrypt(databyte, K);
-				
+				databyte = DES.encrypt(databyte, K);	
 				databyte = ByteArrayUtil.combine(md5Byte, databyte);  // 把MD5和密文一起发过去
 
 				DatagramPacket sendPacket = new DatagramPacket(databyte, databyte.length,
@@ -236,9 +235,9 @@ class CommunicationClient extends JFrame implements Runnable
 		K = NormalizeToEight.normalize(K);
 		jTextArea1.append("\n共享密钥是："+K+"\n");
 		jTextArea1.append("\n产生共享密钥使用了 Diffie-Hellman-Caitao算法");
+		jTextArea1.append("\n使用了MD5算法进行完整性检测");
 		jTextArea1.append("\n加密算法使用了 DES算法");
 		jTextArea1.append("\n-----------请放心，以下通信是经过加密的！------------\n");
-	//	System.out.println("共享密钥：" + K);
 		jb2.setVisible(false);
 		jTextField1.setEditable(true);
 	}
