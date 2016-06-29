@@ -72,7 +72,7 @@ class CommunicationServer extends JFrame implements Runnable
 			random = (int) (Math.random() * p);
 		} while (random <= 1);
 
-		setBounds(400, 100, 400, 400);
+		setBounds(400, 100, 500, 500);
 		setTitle("UDPServer-詹才韬");
 		add(panelNorth, BorderLayout.NORTH);
 		add(textArea, BorderLayout.CENTER);
@@ -85,7 +85,6 @@ class CommunicationServer extends JFrame implements Runnable
 		try
 		{
 			datagramSocket = new DatagramSocket(8002);  // 创建接收方的套接字，IP(chosen by the kernal), 端口号8002
-			// System.out.println(datagramSocket.getPort()); // 为什么是 -1 ?
 		}
 		catch (SocketException e)
 		{
@@ -97,7 +96,7 @@ class CommunicationServer extends JFrame implements Runnable
 		s.start();
 	}
 
-	public void run()         // java 里面，swing那一些控件，是专门一个线程么？
+	public void run()
 	{
 		while (true)
 		{
@@ -117,8 +116,8 @@ class CommunicationServer extends JFrame implements Runnable
 					byte[] databyte = new byte[dataLength];          // 把 databyte_0 后面的 0 去掉
 					ByteArrayUtil.copyByteArray(databyte, databyte_0, dataLength);
 
-					byte[] md5Byte = null;
-					byte[] encryptByte = null;
+					byte[] md5Byte = new byte[32];                   // md5 的长度是定长，32个字节
+					byte[] encryptByte = new byte[databyte.length - 32];
 					ByteArrayUtil.seperate(databyte, md5Byte, encryptByte);  // 拆分
 
 					databyte = DES.decrypt(encryptByte, sharedKey);          // 解密：密文 --> 明文
@@ -129,14 +128,14 @@ class CommunicationServer extends JFrame implements Runnable
 					
 					if (ByteArrayUtil.equal(md5Byte, md5Byte2) == false)     // 判断拆分得到的md5 和 解密得到的明文的md5 是否一致，然后做相关处理
 					{
-						throw new MD5Exception("MD5验证码不相等，完整性检测失败！");
+						throw new MD5Exception("MD5验证码不相等，完整性检测失败！可能被黑客篡改");
 					}
 					
-					textArea.append("\n客户端密文是：" + new String(databyte_0) + '\n');
 					String md5String = new String(md5Byte);
-					textArea.append("\n完整性检测成功，MD5验证码 = " + md5String + "\n");
 					String receivedString = new String(databyte);
-					textArea.append("\n客户端明文是：" + receivedString + '\n');
+					textArea.append("\n完整性检测成功，MD5验证码 = " + md5String);
+					textArea.append("\n客户端密文是：" + new String(encryptByte));
+					textArea.append("\n客户端明文是：" + receivedString + "\n");
 				}
 				if (jTextFieldInput.isEditable() == false)           // 当jTextFieldInput无法编辑的时候(初始阶段), 接受的是共享密钥
 				{
@@ -267,7 +266,7 @@ class CommunicationServer extends JFrame implements Runnable
 					String key = modularExponentiation(r1);      // 产生sharedKey（不是8位）
 					sharedKey = NormalizeToEight.normalize(key); // 规格化成为8位的sharedKey
 					textArea.append("\n共享密钥是: " + sharedKey + "\n产生共享密钥使用了 Diffie-Hellman-Caitao算法\n");
-					textArea.append("加密算法使用了 DES算法\n-----------请放心，以下通信是经过加密的！------------\n");
+					textArea.append("使用了MD5算法进行完整性检测，加密解密算法使用了 DES算法\n-----------请放心，以下通信是经过加密的！------------\n");
 					canSend = false;                             // 恢复为“不能发送”的状态，等待客户端发送下一个消息
 					keyButton.setVisible(false);                 // “产生共享key”按钮消失
 					jTextFieldInput.setEditable(true);           // 输入栏可以编辑
